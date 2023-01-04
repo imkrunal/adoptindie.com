@@ -1,4 +1,5 @@
 import {
+  Avatar,
   Burger,
   Button,
   Container,
@@ -6,12 +7,21 @@ import {
   Flex,
   Group,
   Header,
+  Menu,
   Paper,
+  Text,
   Transition,
+  UnstyledButton,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
-import { RiUserHeartLine } from "react-icons/ri";
+import { useState } from "react";
+import {
+  RiUserHeartLine,
+  RiArrowDownSLine,
+  RiLoginCircleLine,
+} from "react-icons/ri";
 
 const HEADER_HEIGHT = 60;
 
@@ -101,10 +111,32 @@ const useStyles = createStyles((theme) => ({
         : theme.colors.gray[9],
     marginRight: theme.spacing.md,
   },
+
   authMenu: {
     [theme.fn.smallerThan("sm")]: {
       display: "none",
     },
+  },
+
+  user: {
+    color: theme.colorScheme === "dark" ? theme.colors.dark[0] : theme.black,
+    padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+    borderRadius: theme.radius.sm,
+    transition: "background-color 100ms ease",
+
+    "&:hover": {
+      backgroundColor:
+        theme.colorScheme === "dark" ? theme.colors.dark[8] : theme.white,
+    },
+
+    [theme.fn.smallerThan("xs")]: {
+      display: "none",
+    },
+  },
+
+  userActive: {
+    backgroundColor:
+      theme.colorScheme === "dark" ? theme.colors.dark[8] : theme.white,
   },
 }));
 
@@ -116,7 +148,9 @@ const navLinks = [
 
 const Navigation = () => {
   const [opened, { toggle }] = useDisclosure(false);
-  const { classes } = useStyles();
+  const [userMenuOpened, setUserMenuOpened] = useState(false);
+  const { classes, cx, theme } = useStyles();
+  const { data: sessionData } = useSession();
 
   const items = navLinks.map((link) => (
     <Link key={link.label} href={link.href} className={classes.link}>
@@ -137,9 +171,55 @@ const Navigation = () => {
           </Group>
         </Flex>
         <Group className={classes.authMenu}>
-          <Button component={Link} href="/auth/login" size="xs" radius="sm">
-            Log in
-          </Button>
+          {!sessionData ? (
+            <Button component={Link} href="/login" size="xs" radius="sm">
+              Log in
+            </Button>
+          ) : (
+            sessionData.user && (
+              <Menu
+                width={200}
+                position="bottom-end"
+                transition="pop-top-right"
+                onClose={() => setUserMenuOpened(false)}
+                onOpen={() => setUserMenuOpened(true)}
+              >
+                <Menu.Target>
+                  <UnstyledButton
+                    className={cx(classes.user, {
+                      [classes.userActive]: userMenuOpened,
+                    })}
+                  >
+                    <Group spacing={7}>
+                      <Avatar
+                        src={sessionData.user.image}
+                        alt={sessionData.user.name as string}
+                        radius="xl"
+                        size={20}
+                      />
+                      <Text weight={500} size="sm" sx={{ lineHeight: 1 }}>
+                        {sessionData.user?.name}
+                      </Text>
+                      <RiArrowDownSLine size={20} />
+                    </Group>
+                  </UnstyledButton>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    icon={
+                      <RiLoginCircleLine
+                        size={14}
+                        color={theme.colors.red[6]}
+                      />
+                    }
+                    onClick={() => signOut()}
+                  >
+                    Logout
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            )
+          )}
         </Group>
 
         <Burger
