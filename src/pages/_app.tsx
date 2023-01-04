@@ -1,19 +1,24 @@
 import { type AppType } from "next/app";
 import { type Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
-
 import { api } from "../utils/api";
-
-import "../styles/globals.css";
+import { MantineProvider } from "@mantine/core";
+import "@fontsource/inter/variable.css";
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
   pageProps: { session, ...pageProps },
 }) => {
   return (
-    <SessionProvider session={session}>
-      <Component {...pageProps} />
-    </SessionProvider>
+    <MantineProvider
+      withGlobalStyles
+      withNormalizeCSS
+      theme={{ fontFamily: "InterVariable, sans-serif" }}
+    >
+      <SessionProvider session={session}>
+        <Component {...pageProps} />
+      </SessionProvider>
+    </MantineProvider>
   );
 };
 
