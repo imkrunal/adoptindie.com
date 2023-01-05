@@ -27,7 +27,12 @@ const MyApp: AppType<{ session: Session | null }> = ({
     <MantineProvider
       withGlobalStyles
       withNormalizeCSS
-      theme={{ fontFamily: "InterVariable, sans-serif" }}
+      theme={{
+        fontFamily: "InterVariable, sans-serif",
+        headings: {
+          fontFamily: "InterVariable, sans-serif",
+        },
+      }}
     >
       <SessionProvider session={session}>
         {getLayout(<Component {...pageProps} />)}

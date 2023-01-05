@@ -1,7 +1,7 @@
 import { Box, createStyles, Flex, Grid, Text, Title } from "@mantine/core";
 import type { Prisma } from "@prisma/client";
 import Image from "next/image";
-import Link from "next/link";
+import { useRouter } from "next/router";
 
 type ProductCardProps = {
   product: Prisma.ProductGetPayload<{
@@ -17,6 +17,7 @@ const useStyles = createStyles((theme) => ({
     borderWidth: 1,
     borderStyle: "solid",
     borderColor: theme.colors.gray[2],
+    cursor: "pointer",
   },
   info: {
     flex: 1,
@@ -31,14 +32,6 @@ const useStyles = createStyles((theme) => ({
     fontWeight: 400,
     color: theme.colors.gray[7],
   },
-  link: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    left: 0,
-    bottom: 0,
-    zIndex: 10,
-  },
   logoContainer: {
     borderRadius: 100,
     position: "relative",
@@ -52,11 +45,14 @@ const useStyles = createStyles((theme) => ({
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const { classes, theme } = useStyles();
+  const router = useRouter();
 
   return (
     <Grid.Col md={4}>
-      <Box className={classes.root}>
-        <Link href={`/product/${product.slug}`} className={classes.link} />
+      <Box
+        className={classes.root}
+        onClick={() => router.push(`/product/${product.slug}`)}
+      >
         <Flex align="center" justify="space-between" gap={theme.spacing.md}>
           <Box className={classes.logoContainer}>
             {product.logo && (

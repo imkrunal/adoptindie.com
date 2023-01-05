@@ -37,4 +37,21 @@ export const productRouter = createTRPCRouter({
         nextCursor,
       };
     }),
+  getBySlug: publicProcedure
+    .input(
+      z.object({
+        slug: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const product = await ctx.prisma.product.findUnique({
+        where: { slug: input.slug },
+        include: {
+          user: {
+            select: { name: true, image: true },
+          },
+        },
+      });
+      return product;
+    }),
 });
