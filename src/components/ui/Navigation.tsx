@@ -177,47 +177,52 @@ const Navigation = () => {
             </Button>
           ) : (
             sessionData.user && (
-              <Menu
-                width={200}
-                position="bottom-end"
-                transition="pop-top-right"
-                onClose={() => setUserMenuOpened(false)}
-                onOpen={() => setUserMenuOpened(true)}
-              >
-                <Menu.Target>
-                  <UnstyledButton
-                    className={cx(classes.user, {
-                      [classes.userActive]: userMenuOpened,
-                    })}
-                  >
-                    <Group spacing={7}>
-                      <Avatar
-                        src={sessionData.user.image}
-                        alt={sessionData.user.name as string}
-                        radius="xl"
-                        size={20}
-                      />
-                      <Text weight={500} size="sm" sx={{ lineHeight: 1 }}>
-                        {sessionData.user?.name}
-                      </Text>
-                      <RiArrowDownSLine size={20} />
-                    </Group>
-                  </UnstyledButton>
-                </Menu.Target>
-                <Menu.Dropdown>
-                  <Menu.Item
-                    icon={
-                      <RiLoginCircleLine
-                        size={14}
-                        color={theme.colors.red[6]}
-                      />
-                    }
-                    onClick={() => signOut()}
-                  >
-                    Logout
-                  </Menu.Item>
-                </Menu.Dropdown>
-              </Menu>
+              <>
+                <Button component={Link} href="/product/submit-product">
+                  Submit Product
+                </Button>
+                <Menu
+                  width={200}
+                  position="bottom-end"
+                  transition="pop-top-right"
+                  onClose={() => setUserMenuOpened(false)}
+                  onOpen={() => setUserMenuOpened(true)}
+                >
+                  <Menu.Target>
+                    <UnstyledButton
+                      className={cx(classes.user, {
+                        [classes.userActive]: userMenuOpened,
+                      })}
+                    >
+                      <Group spacing={7}>
+                        <Avatar
+                          src={sessionData.user.image}
+                          alt={sessionData.user.name as string}
+                          radius="xl"
+                          size={20}
+                        />
+                        <Text weight={500} size="sm" sx={{ lineHeight: 1 }}>
+                          {sessionData.user?.name}
+                        </Text>
+                        <RiArrowDownSLine size={20} />
+                      </Group>
+                    </UnstyledButton>
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    <Menu.Item
+                      icon={
+                        <RiLoginCircleLine
+                          size={14}
+                          color={theme.colors.red[6]}
+                        />
+                      }
+                      onClick={() => signOut()}
+                    >
+                      Logout
+                    </Menu.Item>
+                  </Menu.Dropdown>
+                </Menu>
+              </>
             )
           )}
         </Group>

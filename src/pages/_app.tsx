@@ -7,6 +7,7 @@ import { MantineProvider } from "@mantine/core";
 import "@fontsource/inter/variable.css";
 import type { NextPage } from "next";
 import type { ReactElement, ReactNode } from "react";
+import { NotificationsProvider } from "@mantine/notifications";
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
@@ -34,9 +35,11 @@ const MyApp: AppType<{ session: Session | null }> = ({
         },
       }}
     >
-      <SessionProvider session={session}>
-        {getLayout(<Component {...pageProps} />)}
-      </SessionProvider>
+      <NotificationsProvider position="bottom-center">
+        <SessionProvider session={session}>
+          {getLayout(<Component {...pageProps} />)}
+        </SessionProvider>
+      </NotificationsProvider>
     </MantineProvider>
   );
 };

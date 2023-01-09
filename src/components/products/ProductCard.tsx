@@ -33,10 +33,11 @@ const useStyles = createStyles((theme) => ({
     color: theme.colors.gray[7],
   },
   logoContainer: {
-    borderRadius: 100,
     position: "relative",
     width: 64,
     height: 64,
+    backgroundColor: theme.colors.gray[2],
+    borderRadius: "100%",
   },
   logo: {
     borderRadius: 100,

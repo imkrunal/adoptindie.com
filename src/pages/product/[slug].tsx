@@ -1,5 +1,6 @@
 import { Layout } from "@components/ui";
 import {
+  ActionIcon,
   Box,
   Button,
   Container,
@@ -10,10 +11,11 @@ import {
   Title,
 } from "@mantine/core";
 import { api } from "@utils/api";
+import { useSession } from "next-auth/react";
 import { NextSeo } from "next-seo";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { RiExternalLinkLine } from "react-icons/ri";
+import { RiExternalLinkLine, RiPencilLine } from "react-icons/ri";
 import type { NextPageWithLayout } from "../_app";
 
 const useStyles = createStyles((theme) => ({
@@ -21,6 +23,8 @@ const useStyles = createStyles((theme) => ({
     position: "relative",
     width: 128,
     height: 128,
+    backgroundColor: theme.colors.gray[2],
+    borderRadius: "100%",
   },
   logo: {
     borderRadius: "100%",
@@ -37,6 +41,7 @@ const useStyles = createStyles((theme) => ({
 }));
 
 const ProductInfo: NextPageWithLayout = () => {
+  const { data: sessionData } = useSession();
   const { classes, theme } = useStyles();
   const router = useRouter();
   const product = api.product.getBySlug.useQuery({
@@ -64,9 +69,21 @@ const ProductInfo: NextPageWithLayout = () => {
               )}
             </Box>
             <Box>
-              <Title className={classes.title} order={1} mt="xs">
-                {product.data.name}
-              </Title>
+              <Flex align="center">
+                <Title className={classes.title} order={1} mt="xs">
+                  {product.data.name}
+                </Title>
+                {sessionData?.user?.id === product.data.userId && (
+                  <ActionIcon
+                    size="xl"
+                    color="blue"
+                    variant="transparent"
+                    onClick={() => router.push(`${router.asPath}/edit`)}
+                  >
+                    <RiPencilLine />
+                  </ActionIcon>
+                )}
+              </Flex>
               <Text className={classes.user}>By {product.data.user.name}</Text>
               {product.data.website && (
                 <Button
