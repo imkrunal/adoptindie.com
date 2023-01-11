@@ -11,7 +11,7 @@ import {
   Title,
 } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
-import { showNotification } from "@mantine/notifications";
+import { showNotification, updateNotification } from "@mantine/notifications";
 import { api } from "@utils/api";
 import { nullToString } from "@utils/helper";
 import type { NextPageContext } from "next";
@@ -19,11 +19,17 @@ import { getSession } from "next-auth/react";
 import { NextSeo } from "next-seo";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { RiCheckLine, RiExternalLinkLine } from "react-icons/ri";
+import {
+  RiCameraSwitchLine,
+  RiCheckLine,
+  RiExternalLinkLine,
+} from "react-icons/ri";
 import type { NextPageWithLayout } from "src/pages/_app";
 import { z } from "zod";
 import prisma from "@utils/prisma";
 import type { Prisma } from "@prisma/client";
+import type { ChangeEvent } from "react";
+import { useRef } from "react";
 
 export const updateProductSchema = z.object({
   name: z.string().min(1, { message: "Required" }),
@@ -38,6 +44,9 @@ const useStyles = createStyles((theme) => ({
     height: 128,
     backgroundColor: theme.colors.gray[2],
     borderRadius: "100%",
+    "&:hover div": {
+      display: "flex",
+    },
   },
   logo: {
     borderRadius: "100%",
@@ -51,6 +60,22 @@ const useStyles = createStyles((theme) => ({
     fontWeight: 400,
     color: theme.colors.gray[7],
   },
+  logoUploadContainer: {
+    display: "none",
+    width: 128,
+    height: 128,
+    backgroundColor: theme.colors.gray[1],
+    opacity: "0.8",
+    borderRadius: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    svg: {
+      width: 24,
+      height: 24,
+      opacity: 1,
+    },
+  },
 }));
 
 type EditProductProps = {
@@ -60,7 +85,6 @@ type EditProductProps = {
 };
 
 const EditProduct: NextPageWithLayout = ({ product }: EditProductProps) => {
-  const utils = api.useContext();
   const { classes, theme } = useStyles();
   const router = useRouter();
   const form = useForm({
@@ -69,9 +93,8 @@ const EditProduct: NextPageWithLayout = ({ product }: EditProductProps) => {
   });
   const mutation = api.product.updateProduct.useMutation({
     onSuccess: (res) => {
-      utils.product.getBySlug.invalidate({ slug: res.slug });
       showNotification({
-        message: "Product Updated",
+        message: "Logo Updated",
         color: "green",
         icon: <RiCheckLine />,
         disallowClose: true,
@@ -79,6 +102,54 @@ const EditProduct: NextPageWithLayout = ({ product }: EditProductProps) => {
       router.push(`/product/${res.slug}`);
     },
   });
+  const logoMutation = api.product.updateProductLogo.useMutation({
+    onSuccess: (res) => router.push(`/product/${res.slug}`),
+  });
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const handleUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files !== null && typeof e.target.files[0] !== "undefined") {
+      showNotification({
+        id: "logo-upload",
+        message: "Uploading Logo",
+        autoClose: false,
+        disallowClose: true,
+        loading: true,
+      });
+      const file = e.target.files[0];
+      const fileArray = file.name.split(".");
+      const ext = fileArray[fileArray.length - 1];
+      const filename = `product/${product?.slug}.${ext}`;
+      const res = await fetch(`/api/upload?file=${filename}`);
+      const { url, fields } = await res.json();
+      const formData = new FormData();
+
+      Object.entries({ ...fields, file }).forEach(([key, value]) => {
+        formData.append(key, value as Blob);
+      });
+
+      const upload = await fetch(url, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (upload.ok && product?.slug) {
+        logoMutation.mutate({
+          slug: product.slug,
+          image: `https://s3.us-west-1.amazonaws.com/vite.noticeninja.com/${filename}`,
+        });
+        console.log("Uploaded successfully!", filename);
+      } else {
+        console.error("Upload failed.");
+      }
+      updateNotification({
+        id: "logo-upload",
+        message: "Logo Uploaded",
+        color: "green",
+        icon: <RiCheckLine />,
+        disallowClose: true,
+      });
+    }
+  };
 
   return (
     <Container size="xl">
@@ -93,8 +164,22 @@ const EditProduct: NextPageWithLayout = ({ product }: EditProductProps) => {
                   src={product.logo}
                   className={classes.logo}
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
               )}
+              <div
+                className={classes.logoUploadContainer}
+                onClick={() => inputRef.current?.click()}
+              >
+                <RiCameraSwitchLine />
+                <input
+                  name="file"
+                  type="file"
+                  style={{ display: "none" }}
+                  onChange={handleUpload}
+                  ref={inputRef}
+                />
+              </div>
             </Box>
             <Box>
               <Title className={classes.title} order={1} mt="xs">

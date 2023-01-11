@@ -122,4 +122,12 @@ export const productRouter = createTRPCRouter({
 
       return product;
     }),
+  updateProductLogo: protectedProcedure
+    .input(z.object({ slug: z.string(), image: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      return await ctx.prisma.product.update({
+        data: { logo: input.image },
+        where: { slug: input.slug },
+      });
+    }),
 });

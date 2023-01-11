@@ -10,6 +10,8 @@
     "start": "next start"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.245.0",
+    "@aws-sdk/s3-presigned-post": "^3.245.0",
     "@emotion/react": "^11.10.5",
     "@emotion/server": "^11.10.0",
     "@fontsource/inter": "^4.5.14",
@@ -44,6 +46,7 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^7.6.0",
+    "@types/aws-sdk": "^2.7.0",
     "@types/lodash": "^4.14.191",
     "@types/node": "^18.11.18",
     "@types/react": "^18.0.26",

@@ -6,17 +6,18 @@ import {
   Container,
   createStyles,
   Flex,
-  Loader,
   Text,
   Title,
 } from "@mantine/core";
-import { api } from "@utils/api";
+import type { NextPageContext } from "next";
 import { useSession } from "next-auth/react";
 import { NextSeo } from "next-seo";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { RiExternalLinkLine, RiPencilLine } from "react-icons/ri";
 import type { NextPageWithLayout } from "../_app";
+import prisma from "@utils/prisma";
+import type { Prisma } from "@prisma/client";
 
 const useStyles = createStyles((theme) => ({
   logoContainer: {
@@ -40,40 +41,40 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-const ProductInfo: NextPageWithLayout = () => {
+type ProductProps = {
+  product?: Prisma.ProductGetPayload<{
+    include: { user: { select: { name: true; image: true } } };
+  }>;
+};
+
+const ProductInfo: NextPageWithLayout = ({ product }: ProductProps) => {
   const { data: sessionData } = useSession();
   const { classes, theme } = useStyles();
   const router = useRouter();
-  const product = api.product.getBySlug.useQuery({
-    slug: router.query.slug as string,
-  });
-
-  if (product.isLoading) {
-    return <Loader />;
-  }
 
   return (
     <Container size="xl">
-      {product.data && (
+      {product && (
         <>
-          <NextSeo title={`${product.data.name} on Adopt Indie`} />
+          <NextSeo title={`${product.name} on Adopt Indie`} />
           <Flex align="center" mt="xl" gap={theme.spacing.xl}>
             <Box className={classes.logoContainer}>
-              {product.data.logo && (
+              {product.logo && (
                 <Image
-                  alt={product.data.name}
-                  src={product.data.logo}
+                  alt={product.name}
+                  src={product.logo}
                   className={classes.logo}
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
               )}
             </Box>
             <Box>
               <Flex align="center">
                 <Title className={classes.title} order={1} mt="xs">
-                  {product.data.name}
+                  {product.name}
                 </Title>
-                {sessionData?.user?.id === product.data.userId && (
+                {sessionData?.user?.id === product.userId && (
                   <ActionIcon
                     size="xl"
                     color="blue"
@@ -84,12 +85,12 @@ const ProductInfo: NextPageWithLayout = () => {
                   </ActionIcon>
                 )}
               </Flex>
-              <Text className={classes.user}>By {product.data.user.name}</Text>
-              {product.data.website && (
+              <Text className={classes.user}>By {product.user.name}</Text>
+              {product.website && (
                 <Button
                   mt="sm"
                   component="a"
-                  href={product.data.website}
+                  href={product.website}
                   target="_blank"
                   radius="xl"
                   rightIcon={<RiExternalLinkLine size={theme.fontSizes.lg} />}
@@ -99,7 +100,7 @@ const ProductInfo: NextPageWithLayout = () => {
               )}
             </Box>
           </Flex>
-          <Text mt="xl">{product.data.description}</Text>
+          <Text mt="xl">{product.description}</Text>
         </>
       )}
     </Container>
@@ -107,5 +108,29 @@ const ProductInfo: NextPageWithLayout = () => {
 };
 
 ProductInfo.getLayout = (page) => <Layout>{page}</Layout>;
+
+export async function getServerSideProps(ctx: NextPageContext) {
+  const product = await prisma.product.findUnique({
+    where: { slug: ctx.query.slug as string },
+    include: {
+      user: {
+        select: {
+          name: true,
+          image: true,
+        },
+      },
+    },
+  });
+  if (!product) {
+    return {
+      redirect: {
+        destination: "/404",
+        permanent: true,
+      },
+    };
+  }
+
+  return { props: { product } };
+}
 
 export default ProductInfo;
